@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>iPhone Edge MP4 Converter Fixed CDN</title>
+  <style>
+    :root{--bg:#020617;--panel:#0f172a;--card:#111827;--text:#e5e7eb;--muted:#94a3b8;--line:rgba(148,163,184,.3);--blue:#38bdf8;--green:#22c55e;--red:#fb7185;--amber:#f59e0b}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#1e40af 0,transparent 35%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:16px}.app{max-width:860px;margin:auto}.box{background:rgba(15,23,42,.94);border:1px solid var(--line);border-radius:22px;padding:18px;margin-bottom:14px;box-shadow:0 18px 60px rgba(0,0,0,.32)}h1{font-size:clamp(24px,7vw,36px);line-height:1.15;margin:0 0 8px}h2{font-size:19px;margin:0 0 12px}p,.hint{color:var(--muted);line-height:1.6}.hint{font-size:13px}.ok{color:#86efac}.warn{color:#fcd34d}.error{color:var(--red)}label{display:block;font-weight:800;margin-bottom:8px}input,select,button{width:100%;border:1px solid var(--line);border-radius:14px;padding:14px;background:#020617;color:var(--text);font-size:16px}button{border:0;font-weight:900;cursor:pointer;background:linear-gradient(135deg,var(--blue),#2563eb)}button:disabled{opacity:.55;cursor:not-allowed}.green{background:linear-gradient(135deg,var(--green),#16a34a);color:#052e16}.red{background:linear-gradient(135deg,var(--red),#e11d48)}.amber{background:linear-gradient(135deg,var(--amber),#d97706);color:#211000}.grid{display:grid;gap:10px}@media(min-width:720px){.grid.two{grid-template-columns:1fr 1fr}.actions{grid-template-columns:1fr 1fr 1fr}}.actions{display:grid;gap:10px;margin-top:12px}.barbox{height:12px;border:1px solid var(--line);border-radius:999px;background:#020617;overflow:hidden}.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--green),var(--blue));transition:width .15s linear}.item{background:rgba(17,24,39,.96);border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:10px}.name{font-weight:900;overflow-wrap:anywhere}.badge{display:inline-block;margin-top:6px;padding:5px 9px;border-radius:999px;background:rgba(56,189,248,.16);color:#bae6fd;font-size:12px}a.download{display:none;text-align:center;text-decoration:none;margin-top:10px;padding:13px 14px;border-radius:14px;background:linear-gradient(135deg,var(--green),#16a34a);color:#052e16;font-weight:900}.log{white-space:pre-wrap;background:#020617;border:1px solid var(--line);border-radius:14px;padding:12px;color:#cbd5e1;font-size:12px;max-height:180px;overflow:auto}
+  </style>
+</head>
+<body>
+<main class="app">
+  <section class="box">
+    <h1>iPhone Edge MP4 Converter</h1>
+    <p>เวอร์ชันแก้ไข CDN: ถ้าโหลด FFmpeg จากแหล่งแรกไม่ได้ จะลองแหล่งสำรอง และจะไม่ขึ้นว่าสำเร็จหากแปลงไม่ผ่าน</p>
+    <p id="topStatus" class="hint">พร้อมเลือกไฟล์</p>
+  </section>
+
+  <section class="box">
+    <h2>1) เลือกไฟล์</h2>
+    <input id="fileInput" type="file" accept="video/*,.mov,.mp4,.m4v,.mkv,.avi,.webm,.ts,.mts,.m2ts" multiple />
+    <p class="hint">แนะนำบน iPhone: เลือกจากแอป Files จะเสถียรกว่า Photos และควรทดสอบด้วยไฟล์เล็กก่อน</p>
+  </section>
+
+  <section class="box">
+    <h2>2) ตั้งค่า</h2>
+    <div class="grid two">
+      <div>
+        <label for="mode">โหมด</label>
+        <select id="mode">
+          <option value="auto">Auto Fast: เร็วก่อน ถ้าไม่ได้ค่อยบีบอัด</option>
+          <option value="stable">Stable Compress</option>
+          <option value="small">Small File</option>
+          <option value="copy">Copy Only</option>
+        </select>
+      </div>
+      <div>
+        <label for="guard">กันค้าง</label>
+        <select id="guard">
+          <option value="safe">เตือนไฟล์เกิน 500MB</option>
+          <option value="strict">เตือนไฟล์เกิน 300MB</option>
+          <option value="off">ปิดเตือน</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="startBtn">เริ่มแปลงเป็น MP4</button>
+      <button id="downloadAllBtn" class="green" disabled>ดาวน์โหลดทั้งหมด</button>
+      <button id="clearBtn" class="red">ล้างรายการ/Memory</button>
+    </div>
+    <div style="margin-top:14px" class="barbox"><div id="totalBar" class="bar"></div></div>
+    <p id="status" class="hint">ยังไม่ได้เลือกไฟล์</p>
+  </section>
+
+  <section class="box">
+    <h2>3) รายการไฟล์</h2>
+    <div id="queue"><p class="hint">ยังไม่มีไฟล์ในรายการ</p></div>
+  </section>
+
+  <section class="box">
+    <h2>Debug Status</h2>
+    <div id="log" class="log">เริ่มต้นระบบ...</div>
+  </section>
+</main>
+
+<script>
+(function(){
+  var fileInput=document.getElementById('fileInput'),mode=document.getElementById('mode'),guard=document.getElementById('guard'),startBtn=document.getElementById('startBtn'),downloadAllBtn=document.getElementById('downloadAllBtn'),clearBtn=document.getElementById('clearBtn'),queue=document.getElementById('queue'),statusEl=document.getElementById('status'),topStatus=document.getElementById('topStatus'),totalBar=document.getElementById('totalBar'),logEl=document.getElementById('log');
+  var jobs=[],busy=false,ffmpeg=null,active=null,ffmpegApi=null;
+  var scriptUrls=['https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js','https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js'];
+  var coreUrls=['https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js','https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'];
+  function log(m){var s='['+new Date().toLocaleTimeString()+'] '+m;logEl.textContent+='\n'+s;console.log(s)}
+  function setStatus(m,c){statusEl.textContent=m;statusEl.className=c||'hint';log(m)}
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+  function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+  function bytes(n){if(!n)return 'ไม่ทราบขนาด';var u=['B','KB','MB','GB'],i=Math.min(Math.floor(Math.log(n)/Math.log(1024)),3);return (n/Math.pow(1024,i)).toFixed(i?2:0)+' '+u[i]}
+  function safe(n){return(n||'video').replace(/\.[^/.]+$/,'').replace(/[^a-z0-9ก-๙_-]+/gi,'_')||'converted'}
+  function outName(j){return safe(j.file.name)+'.mp4'}
+  function setTotal(v){totalBar.style.width=Math.max(0,Math.min(100,Math.round(v)))+'%'}
+  function warn(f){var mb=(f.size||0)/1024/1024;if(guard.value==='off')return'';if(guard.value==='strict'&&mb>300)return'ไฟล์เกิน 300MB: เสี่ยงค้างบนมือถือ';if(guard.value==='safe'&&mb>500)return'ไฟล์เกิน 500MB: อาจใช้เวลานาน';return''}
+  function updateButtons(){downloadAllBtn.disabled=!jobs.some(function(j){return j.url})}
+  function loadScript(src){return new Promise(function(resolve,reject){var s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=function(){reject(new Error('โหลด script ไม่ได้: '+src))};document.head.appendChild(s)})}
+  async function loadFfmpegScript(){if(window.FFmpeg&&window.FFmpeg.createFFmpeg)return window.FFmpeg;for(var i=0;i<scriptUrls.length;i++){try{setStatus('กำลังโหลด FFmpeg library จาก CDN '+(i+1)+'/'+scriptUrls.length);await loadScript(scriptUrls[i]);if(window.FFmpeg&&window.FFmpeg.createFFmpeg)return window.FFmpeg}catch(e){log(e.message)}}throw new Error('โหลด FFmpeg library ไม่สำเร็จ ให้เปิดไฟล์ผ่านลิงก์ https หรือเปลี่ยนเครือข่าย')}
+  function render(){if(!jobs.length){queue.innerHTML='<p class="hint">ยังไม่มีไฟล์ในรายการ</p>';updateButtons();return}queue.innerHTML='';jobs.forEach(function(j){var w=warn(j.file),d=document.createElement('div');d.className='item';d.innerHTML='<div class="name"></div><div class="hint"></div>'+(w?'<div class="warn"></div>':'')+'<span class="badge"></span><div style="margin-top:10px" class="barbox"><div id="bar-'+j.id+'" class="bar" style="width:'+j.progress+'%"></div></div><p id="st-'+j.id+'" class="hint"></p><a id="dl-'+j.id+'" class="download" download>ดาวน์โหลดไฟล์ MP4 นี้</a><button style="margin-top:10px" class="red" data-id="'+j.id+'">ลบไฟล์นี้</button>';d.querySelector('.name').textContent=j.file.name;d.querySelector('.hint').textContent='ต้นฉบับ: '+bytes(j.file.size)+' | ผลลัพธ์: '+(j.blob?bytes(j.blob.size):'-');if(w)d.querySelector('.warn').textContent=w;d.querySelector('.badge').textContent=j.blob?'สำเร็จ':(j.running?'กำลังแปลง':'รอคิว');queue.appendChild(d);document.getElementById('st-'+j.id).textContent=j.status||'รอแปลง';if(j.url){var a=document.getElementById('dl-'+j.id);a.href=j.url;a.download=outName(j);a.style.display='block'}});Array.prototype.forEach.call(queue.querySelectorAll('button[data-id]'),function(b){b.onclick=function(){if(busy)return;var id=b.getAttribute('data-id');jobs=jobs.filter(function(j){if(j.id===id&&j.url)URL.revokeObjectURL(j.url);return j.id!==id});render()}});updateButtons()}
+  function addFiles(list){var arr=Array.prototype.slice.call(list||[]);log('ไฟล์จาก input: '+arr.length);if(!arr.length){setStatus('ไม่พบไฟล์ กรุณาเลือกจากแอป Files', 'error');return}arr.forEach(function(f){jobs.push({id:uid(),file:f,progress:0,status:'รอแปลง',blob:null,url:null,running:false})});setStatus('เลือกไฟล์แล้ว '+jobs.length+' ไฟล์ กดเริ่มแปลงได้เลย','ok');render()}
+  function setJob(j,m,c){j.status=m;var e=document.getElementById('st-'+j.id);if(e){e.textContent=m;e.className=c||'hint'}log(j.file.name+': '+m)}
+  function prog(j,v){j.progress=Math.max(0,Math.min(100,Math.round(v)));var e=document.getElementById('bar-'+j.id);if(e)e.style.width=j.progress+'%'}
+  function copyArgs(i,o){return['-fflags','+genpts+discardcorrupt','-err_detect','ignore_err','-i',i,'-map','0:v:0?','-map','0:a:0?','-c','copy','-movflags','+faststart',o]}
+  function compArgs(i,o,level){var small=level==='small';return['-fflags','+genpts+discardcorrupt','-err_detect','ignore_err','-i',i,'-map','0:v:0?','-map','0:a:0?','-vf',small?'scale=min(1280,iw):-2':'scale=min(1920,iw):-2','-c:v','libx264','-preset','veryfast','-crf',small?'30':'27','-pix_fmt','yuv420p','-c:a','aac','-b:a',small?'96k':'128k','-movflags','+faststart',o]}
+  async function ensureFfmpeg(){ffmpegApi=await loadFfmpegScript();if(ffmpeg&&ffmpeg.isLoaded())return;var lastErr=null;for(var i=0;i<coreUrls.length;i++){try{setStatus('กำลังโหลด FFmpeg core จาก CDN '+(i+1)+'/'+coreUrls.length);ffmpeg=ffmpegApi.createFFmpeg({log:false,corePath:coreUrls[i],progress:function(p){if(active&&Number.isFinite(p.ratio))prog(active,p.ratio*100)}});await ffmpeg.load();setStatus('โหลด FFmpeg สำเร็จ','ok');return}catch(e){lastErr=e;log('core fail: '+(e.message||e));ffmpeg=null}}throw new Error('โหลด FFmpeg core ไม่สำเร็จ: ให้เปิดจากลิงก์ https โดยตรงใน Edge/Safari หรือเปลี่ยน Wi‑Fi')}
+  function inputName(f){var ext=((f.name||'').match(/\.[^.]+$/)||['.bin'])[0].replace(/[^a-z0-9.]/gi,'')||'.bin';return'in_'+uid()+ext}
+  async function convert(j,idx,total){active=j;j.running=true;j.blob=null;if(j.url)URL.revokeObjectURL(j.url);j.url=null;render();prog(j,0);var inp=inputName(j.file),out='out_'+j.id+'.mp4';try{await ensureFfmpeg();setStatus('กำลังแปลง '+(idx+1)+'/'+total+': '+j.file.name);ffmpeg.FS('writeFile',inp,await ffmpegApi.fetchFile(j.file));if(mode.value==='copy'){setJob(j,'กำลังแปลงแบบ Copy Only');await ffmpeg.run.apply(ffmpeg,copyArgs(inp,out))}else if(mode.value==='auto'){setJob(j,'Auto Fast: ลอง Copy ก่อน');try{await ffmpeg.run.apply(ffmpeg,copyArgs(inp,out))}catch(e){try{ffmpeg.FS('unlink',out)}catch(_){}prog(j,0);setJob(j,'Copy ไม่ผ่าน กำลังบีบอัด');await ffmpeg.run.apply(ffmpeg,compArgs(inp,out,'stable'))}}else{setJob(j,mode.value==='small'?'กำลังบีบอัดไฟล์เล็ก':'กำลังบีบอัดเสถียร');await ffmpeg.run.apply(ffmpeg,compArgs(inp,out,mode.value))}var data=ffmpeg.FS('readFile',out);j.blob=new Blob([data.buffer],{type:'video/mp4'});j.url=URL.createObjectURL(j.blob);prog(j,100);setJob(j,'สำเร็จ: '+bytes(j.file.size)+' → '+bytes(j.blob.size),'ok')}catch(e){setJob(j,'ไม่สำเร็จ: '+(e&&e.message?e.message:e),'error');throw e}finally{j.running=false;active=null;try{ffmpeg&&ffmpeg.FS('unlink',inp)}catch(_){}try{ffmpeg&&ffmpeg.FS('unlink',out)}catch(_){}render();await sleep(250)}}
+  async function start(){if(busy)return;if(!jobs.length){setStatus('กรุณาเลือกไฟล์ก่อน','error');return}var r=jobs.find(function(j){return warn(j.file)});if(r&&!confirm('มีไฟล์ใหญ่ อาจใช้เวลานานหรือค้างบนมือถือ ต้องการเริ่มต่อหรือไม่?'))return;busy=true;startBtn.disabled=true;clearBtn.disabled=true;fileInput.disabled=true;var success=0;try{for(var i=0;i<jobs.length;i++){try{await convert(jobs[i],i,jobs.length);if(jobs[i].url)success++}catch(e){setStatus('หยุดแปลงเพราะเกิดข้อผิดพลาด: '+(e.message||e),'error');break}setTotal(((i+1)/jobs.length)*100);await sleep(500)}if(success>0)setStatus('แปลงสำเร็จ '+success+' ไฟล์ ปุ่มดาวน์โหลดอยู่ในการ์ดของไฟล์แต่ละไฟล์','ok');else setStatus('ยังไม่มีไฟล์ที่แปลงสำเร็จ จึงยังไม่มีปุ่มดาวน์โหลด','error')}finally{busy=false;startBtn.disabled=false;clearBtn.disabled=false;fileInput.disabled=false;updateButtons()}}
+  function clear(){if(busy)return;jobs.forEach(function(j){if(j.url)URL.revokeObjectURL(j.url)});jobs=[];fileInput.value='';setTotal(0);render();setStatus('ล้างรายการแล้ว','ok')}
+  async function dlAll(){var done=jobs.filter(function(j){return j.url});for(var i=0;i<done.length;i++){var a=document.createElement('a');a.href=done[i].url;a.download=outName(done[i]);document.body.appendChild(a);a.click();a.remove();await sleep(650)}}
+  fileInput.addEventListener('change',function(e){addFiles(e.target.files)});fileInput.addEventListener('input',function(e){if(e.target.files&&e.target.files.length)addFiles(e.target.files)});startBtn.onclick=start;clearBtn.onclick=clear;downloadAllBtn.onclick=dlAll;topStatus.textContent='หน้าเว็บพร้อมแล้ว';topStatus.className='ok';log('พร้อมใช้งาน');
+})();
+</script>
+</body>
+</html>
